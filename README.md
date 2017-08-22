@@ -12,7 +12,7 @@ This cookbook is meant to be consumed by wrapper cookbooks such as this: [wrappe
 
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
-| `node['netuitive']['version']` | string | The version of the agent to install | `'0.2.9-98'`|
+| `node['netuitive']['version']` | String | The version of the agent to install | `'0.2.9-98'`|
 | `node['netuitive']['repo']['urls']` | Hash | A hash of platform specific repo urls | `{ 'debian' => 'https://repos.app.netuitive.com/deb/', 'rhel' => 'https://repos.app.netuitive.com/rpm/noarch' }` |
 | `node['netuitive']['repo']['keys']` | Hash | A hash of platform specific repo gpg key locations | `{ 'debian' => 'https://repos.app.netuitive.com/netuitive.gpg', 'rhel' => 'https://repos.app.netuitive.com/RPM-GPG-KEY-netuitive' }` |
 | `node['netuitive']['repo']['components']` | Hash | A hash of platform specific compnents | `{ 'debian' => ['stable', 'main'] }` |
@@ -24,7 +24,16 @@ Supported Platforms
 ### Operating Systems
 
 #### Official
-Debian 8, Ubuntu 14.04 LTS, CentOS 6.5, and CentOS 7. Automated testing will be performed to ensure coverage of these platforms.
+Supported and tested locally with vagrant:
+- Ubuntu 16.04 LTS
+- Ubuntu 14.04 LTS
+- CentOS 6.7+
+- Centos 7.2+
+- Debian 8
+
+Tested platforms by travisci:
+- centos 6
+- centos 7
 
 #### Unofficial
 We will attempt to support as many linux distributions as possible and are hoping to expand the above list over time. Any EPEL based system that still supports yum will likely work and we are open to PRs to expands functionality.
@@ -59,15 +68,21 @@ All recipes are simple wrappers around the lightweight resources and providers (
 ##### Attributes
 | Name | Description | Default |
 |:------:|-------------|-------------|
-| api_key | Your datasource's API key. | 'CHANGE_ME_PLZ' |
-| api_url | The API url for netuitive. | 'https://api.app.netuitive.com/ingest/infrastructure' |
-| conf_path | The path to your Netuitive agent config file. | '/opt/netuitive-agent/conf/netuitive-agent.conf' |
-| cookbook_template | Specifies a different cookbook that the template can come from. | 'netuitive' |
-| docker_collector_enabled | Whether or not to enable the Docker collector. May be `true` or `false`. | false |
-| relations | An array of relations. | [] |
-| source | The name of the template. | 'netuitive-agent.conf.erb' |
-| statsd_enabled | Whether to enable embedded statsd server. | 'False' |
-| tags | An array of tags . | [] |
+| api_key | Your datasource's API key. | `'CHANGE_ME_PLZ'` |
+| api_url | The API url for netuitive. | `'https://api.app.netuitive.com/ingest/infrastructure'` |
+| conf_path | The path to your Netuitive agent config file. | `'/opt/netuitive-agent/conf/netuitive-agent.conf'` |
+| cookbook_template | Specifies a different cookbook that the template can come from. | `'netuitive'` |
+| disk_usage_collector_metrics_whitelist | Specifies the metrics whitelist for the DiskUsageCollector. You might change this if you wanted to ignore the Docker device mapper metrics. | `'(?:^.*\.io$|^.*\.average_queue_length$|^.*\.await$|^.*\.iops$|^.*\.read_await$|^.*\.reads$|^.*\.util_percentage|^.*\.write_await$|^.*\.writes$)'` |
+| docker_collector_enabled | Whether or not to enable the Docker collector. May be `true` or `false`. | `false` |
+| relations | An array of relations. | `[]` |
+| source | The name of the template. | `'netuitive-agent.conf.erb'` |
+| statsd_enabled | Whether to enable embedded statsd server. Specify the string `'True'` or `'False'` | `'False'` |
+| statsd_forward | Whether or not to forward stats from the embedded statsd server. May be `true` or `false` | `false`
+| statsd_forward_ip | The IP to forward statsd data to if forwarding is enabled. | `'127.0.0.1'`
+| statsd_forward_port | The port to forward statsd data to if forwarding is enabled. | `9125`
+| statsd_listen_ip | The interface to listen on if statsd is enabled. | `'127.0.0.1'`
+| statsd_listen_port | The port the embedded statsd listens on | `8125` |
+| tags | An array of tags . | `[]` |
 
 #### netuitive_collector
 
@@ -77,11 +92,11 @@ All recipes are simple wrappers around the lightweight resources and providers (
 ##### Attributes
 | Name | Description | Default |
 |:------:|-------------|-------------|
-| conf_path | The path to your Netuitive agent config file. | '/opt/netuitive-agent/conf/netuitive-agent.conf' |
-| cookbook_template | Specifies a different cookbook that the template can come from. | 'netuitive' |
-| collectors_dir | Dir that custom collectors live in. | '/opt/netuitive-agent/conf/collectors' |
-| custom_collectors | A hash of collectos and options to create. | {} |
-| source | The name of the template. | collector_generic.conf.erb |
+| conf_path | The path to your Netuitive agent config file. | `'/opt/netuitive-agent/conf/netuitive-agent.conf'` |
+| cookbook_template | Specifies a different cookbook that the template can come from. | `'netuitive'` |
+| collectors_dir | Dir that custom collectors live in. | `'/opt/netuitive-agent/conf/collectors'` |
+| custom_collectors | A hash of collectors and options to create. | `{}` |
+| source | The name of the template. | `'collector_generic.conf.erb'` |
 
 #### netuitive_install
 
@@ -91,7 +106,7 @@ All recipes are simple wrappers around the lightweight resources and providers (
 ##### Attributes
 | Name | Description | Default |
 |:------:|-------------|-------------|
-| package_name | The package's name. | 'netuitive-agent' |
+| package_name | The package's name. | `'netuitive-agent'` |
 
 #### netuitive_repo
 
@@ -101,12 +116,12 @@ All recipes are simple wrappers around the lightweight resources and providers (
 ##### Attributes
 | Name | Description | Default |
 |:------:|-------------|-------------|
-| repo_components | A hash of platform-specific components. | nil |
-| repo_keys | A hash of platform-specific repository GPG keys. | nil |
-| repo_priority_pins | A hash of platform-specific repo pins. | nil |
-| repo_urls | A hash of platform-specific repository URLs. | nil |
-| use_epel_repos | Bool value to enable epel repos (doesnt do anything on debian based repos). | nil |
-| version | The version to pin. | nil |
+| repo_components | A hash of platform-specific components. | `nil` |
+| repo_keys | A hash of platform-specific repository GPG keys. | `nil` |
+| repo_priority_pins | A hash of platform-specific repo pins. | `nil` |
+| repo_urls | A hash of platform-specific repository URLs. | `nil` |
+| use_epel_repos | Bool value to enable EPEL repos (doesn't do anything on Debian-based repos). | `nil` |
+| version | The version to pin. | `nil` |
 
 
 Additional Information
